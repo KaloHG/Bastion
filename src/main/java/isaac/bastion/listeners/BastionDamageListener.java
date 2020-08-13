@@ -140,7 +140,7 @@ public final class BastionDamageListener implements Listener {
 		if (event.getCause() == BastionDamageEvent.Cause.ELYTRA) {
 			event.getPlayer().sendMessage(ChatColor.RED + "Elytra flight damaged Bastion.");
 		}
-		if (event.isCancelled() == true) {
+		if (event.isCancelled()) {
 			event.getPlayer().sendMessage(ChatColor.RED + "Bastion was not damaged. Try placing a different block within the Bastion radius.");
 		}
 
