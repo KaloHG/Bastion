@@ -1,5 +1,7 @@
 package isaac.bastion.listeners;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -139,7 +141,39 @@ public class BastionInteractListener implements Listener {
 
 		BastionType type = blockToType(event.getBlock(), inHand);
 		if(type != null) {
+			Block block = event.getBlock();
+
 			Bastion.getPlugin().getLogger().log(Level.INFO, "Pending a bastion at {0}", event.getBlock().getLocation());
+			Bastion.getPlugin().getLogger().warning("Running Bastion overlap check...");
+
+			Set<BastionBlock> blocking = blockManager.getBlockingBastions(block.getLocation());
+			HashMap<BastionType, Set<BastionBlock>> typeMap = new HashMap<>();
+			for(BastionBlock bastionBlock : blocking) {
+				Set<BastionBlock> set = typeMap.get(block.getType());
+				if(set == null) {
+					set = new HashSet<>();
+					typeMap.put(bastionBlock.getType(), set);
+				}
+				set.add(bastionBlock);
+			}
+			for(BastionBlock bastion : blocking) {
+				if(bastion.getType() != type) {
+					continue;
+				}
+				boolean colliding = false;
+				if(Math.abs(bastion.getLocation().getBlockX() - block.getLocation().getBlockX()) > type.getProximityDamageRange()) {
+					continue;
+				}
+				if(Math.abs(bastion.getLocation().getBlockZ() - block.getLocation().getBlockZ()) > type.getProximityDamageRange()) {
+					continue;
+				}
+				colliding = true;
+				if(colliding) {
+					event.getPlayer().sendMessage("You cannot place bastions within other bastion fields.");
+					event.setCancelled(true);
+					return;
+				}
+			}
 			blockStorage.addPendingBastion(event.getBlock().getLocation(), type);
 		}
 	}
@@ -147,6 +181,7 @@ public class BastionInteractListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onReinforcement(ReinforcementCreationEvent event) {
 		Block block = event.getReinforcement().getLocation().getBlock();
+
 
 			final BastionType type = blockStorage.getAndRemovePendingBastion(block.getLocation());
 			if (type != null && !PlayersStates.playerInMode(event.getPlayer(), Mode.OFF)) {
@@ -160,6 +195,7 @@ public class BastionInteractListener implements Listener {
 					return;
 				}
 				// end Check Permissions.BASTION_PLACE
+
 				
 				Bastion.getPlugin().getLogger().log(Level.INFO, "Registering to create a {0} bastion", type);
 				final Location loc = block.getLocation().clone();
