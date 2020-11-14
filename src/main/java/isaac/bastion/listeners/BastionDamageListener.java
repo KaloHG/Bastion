@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import isaac.bastion.CommonSettings;
+import isaac.bastion.event.BastionDamageEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -125,6 +127,23 @@ public final class BastionDamageListener implements Listener {
 				event.getPlayer().sendMessage(ChatColor.RED + "Emptying bucket prevented by Bastion");
 			}
 		}
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onBastionDamage(BastionDamageEvent event) {
+		if (event.getCause() == BastionDamageEvent.Cause.BLOCK_PLACED) {
+			event.getPlayer().sendMessage(ChatColor.RED + "Block placement damaged Bastion.");
+		}
+		if (event.getCause() == BastionDamageEvent.Cause.PEARL) {
+			event.getPlayer().sendMessage(ChatColor.RED + "Pearling damaged Bastion.");
+		}
+		if (event.getCause() == BastionDamageEvent.Cause.ELYTRA) {
+			event.getPlayer().sendMessage(ChatColor.RED + "Elytra flight damaged Bastion.");
+		}
+		if (event.isCancelled()) {
+			event.getPlayer().sendMessage(ChatColor.RED + "Bastion was not damaged. Try placing a different block within the Bastion radius.");
+		}
+
 	}
 
 	private boolean stopBlockEvent(Location source, Collection<Location> locations) {
